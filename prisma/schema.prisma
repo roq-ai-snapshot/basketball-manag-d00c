@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model draft_pick {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  round          Int
+  pick_number    Int
+  player_id      String      @db.Uuid
+  sports_team_id String      @db.Uuid
+  created_at     DateTime    @default(now()) @db.Timestamp(6)
+  updated_at     DateTime    @default(now()) @db.Timestamp(6)
+  player         player      @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sports_team    sports_team @relation(fields: [sports_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model player {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  first_name     String        @db.VarChar(255)
+  last_name      String        @db.VarChar(255)
+  height         Int
+  weight         Int
+  age            Int
+  sports_team_id String        @db.Uuid
+  created_at     DateTime      @default(now()) @db.Timestamp(6)
+  updated_at     DateTime      @default(now()) @db.Timestamp(6)
+  draft_pick     draft_pick[]
+  sports_team    sports_team   @relation(fields: [sports_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player_stat    player_stat[]
+}
+
+model player_stat {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  points     Int
+  rebounds   Int
+  assists    Int
+  steals     Int
+  blocks     Int
+  turnovers  Int
+  player_id  String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  player     player   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sports_team {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String       @db.VarChar(255)
+  description String?      @db.VarChar(255)
+  image       String?      @db.VarChar(255)
+  created_at  DateTime     @default(now()) @db.Timestamp(6)
+  updated_at  DateTime     @default(now()) @db.Timestamp(6)
+  user_id     String       @db.Uuid
+  tenant_id   String       @db.VarChar(255)
+  draft_pick  draft_pick[]
+  player      player[]
+  user        user         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String        @unique @db.VarChar(255)
+  firstName   String?       @db.VarChar(255)
+  lastName    String?       @db.VarChar(255)
+  roq_user_id String        @db.VarChar(255)
+  tenant_id   String        @db.VarChar(255)
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  updated_at  DateTime      @default(now()) @db.Timestamp(6)
+  sports_team sports_team[]
+}
